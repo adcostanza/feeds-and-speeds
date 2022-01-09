@@ -17,6 +17,7 @@ class Cutter:
     flutes: int
     shank_diameter: float
     overall_stickout: float
+    maximum_deflection: float
 
 
 @dataclass
@@ -53,7 +54,8 @@ cutter = Cutter(
     length=0.75,
     flutes=3,
     shank_diameter=0.25,
-    overall_stickout=1)
+    overall_stickout=1,
+    maximum_deflection=0.0010)
 
 chipload: float = 0.002
 woc: float = 0.1875
@@ -68,6 +70,35 @@ def get_feedrate(flutes: int, rpm: float, adjusted_chipload: float) -> float:
 
 
 adjusted_chipload = get_adjusted_chipload(cutter_diameter=cutter.diameter, woc=woc, chipload=chipload)
+feedrate = get_feedrate(flutes=cutter.flutes, rpm=rpm, adjusted_chipload=adjusted_chipload)
+
+
+def get_mrr(feedrate: float, doc: float, woc: float) -> float:
+    return feedrate * doc * woc
+
+
+mrr = get_mrr(feedrate=feedrate, doc=doc, woc=woc)
+
 print("{0:0.5f}".format(adjusted_chipload))
-print("{0:0.0f}".format(get_feedrate(flutes=cutter.flutes, rpm=rpm, adjusted_chipload=adjusted_chipload)))
+print("{0:0.0f}".format(feedrate))
+print("{0:0.2f}".format(mrr))
+
+
+def get_power_usage(mrr: float, k_factor: float) -> float:
+    return mrr / k_factor
+
+
+def get_torque(power_usage: float, rpm: float) -> float:
+    return power_usage * 63024. / rpm
+
+
+power_usage = get_power_usage(mrr=mrr, k_factor=k_factor)
+torque = get_torque(power_usage=power_usage, rpm=rpm)
+
+print("{0:0.3f}".format(power_usage))
+print("{0:0.2f}".format(torque))
+
+
+# max deflection
+#=IF(E30="","",IF($D$5<$D$8,G30*($D$6^3/(3*$D$12*(PI()*($D$5/2)^4/4))+($D$9-$D$6)^3/(3*$D$12*(PI()*($D$8/2)^4/4))),IF($D$5=$D$8,G30*$D$9^3/(3*$D$12*(PI()*($D$5/2)^4/4)),G30*$D$9^3/(3*$D$12*PI()*($D$8/2)^4/4)))/$D$13)
 

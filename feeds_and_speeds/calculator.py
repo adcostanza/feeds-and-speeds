@@ -31,6 +31,10 @@ class Router:
     def input_power(self) -> float:
         return self.input_voltage * self.input_current
 
+    @property
+    def output_power(self) -> float:
+        return self.input_power * self.efficiency / 745.7
+
 
 @dataclass
 class Machine:
@@ -100,5 +104,17 @@ print("{0:0.2f}".format(torque))
 
 
 # max deflection
-#=IF(E30="","",IF($D$5<$D$8,G30*($D$6^3/(3*$D$12*(PI()*($D$5/2)^4/4))+($D$9-$D$6)^3/(3*$D$12*(PI()*($D$8/2)^4/4))),IF($D$5=$D$8,G30*$D$9^3/(3*$D$12*(PI()*($D$5/2)^4/4)),G30*$D$9^3/(3*$D$12*PI()*($D$8/2)^4/4)))/$D$13)
+# =IF(E30="","",IF($D$5<$D$8,G30*($D$6^3/(3*$D$12*(PI()*($D$5/2)^4/4))+($D$9-$D$6)^3/(3*$D$12*(PI()*($D$8/2)^4/4))),IF($D$5=$D$8,G30*$D$9^3/(3*$D$12*(PI()*($D$5/2)^4/4)),G30*$D$9^3/(3*$D$12*PI()*($D$8/2)^4/4)))/$D$13)
 
+def get_machine_force(torque: float, cutter_diameter: float) -> float:
+    return torque / (cutter_diameter / 2)
+
+
+machine_force = get_machine_force(torque=torque, cutter_diameter=cutter.diameter)
+machine_force_percent = machine_force / machine.maximum_machine_force
+print("{0:0.2f}".format(machine_force))
+print("{0:0.0f}%".format(machine_force_percent * 100))
+
+available_power_percent = power_usage / machine.router.output_power
+
+print("{0:0.0f}%".format(available_power_percent * 100))

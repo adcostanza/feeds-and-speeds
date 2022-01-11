@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from math import sqrt
+from math import sqrt, pi
 
 
 class CutterMaterial(str, Enum):
@@ -103,9 +103,6 @@ print("{0:0.3f}".format(power_usage))
 print("{0:0.2f}".format(torque))
 
 
-# max deflection
-# =IF(E30="","",IF($D$5<$D$8,G30*($D$6^3/(3*$D$12*(PI()*($D$5/2)^4/4))+($D$9-$D$6)^3/(3*$D$12*(PI()*($D$8/2)^4/4))),IF($D$5=$D$8,G30*$D$9^3/(3*$D$12*(PI()*($D$5/2)^4/4)),G30*$D$9^3/(3*$D$12*PI()*($D$8/2)^4/4)))/$D$13)
-
 def get_machine_force(torque: float, cutter_diameter: float) -> float:
     return torque / (cutter_diameter / 2)
 
@@ -118,3 +115,63 @@ print("{0:0.0f}%".format(machine_force_percent * 100))
 available_power_percent = power_usage / machine.router.output_power
 
 print("{0:0.0f}%".format(available_power_percent * 100))
+
+router_cutting_power_increase = power_usage * 745.7
+
+print("{0:0.1f}".format(router_cutting_power_increase))
+
+parse_me = "=IF(E30="","",IF($D$5<$D$8,G30*($D$6^3/(3*$D$12*(PI()*($D$5/2)^4/4))+($D$9-$D$6)^3/(3*$D$12*(PI()*($D$8/2)^4/4))),IF($D$5=$D$8,G30*$D$9^3/(3*$D$12*(PI()*($D$5/2)^4/4)),G30*$D$9^3/(3*$D$12*PI()*($D$8/2)^4/4)))/$D$13)"
+mapping = {
+    "D5": "cutter_diameter",
+    "D8": "shank_diameter",
+    "G30": "machine_force",
+    "D6": "cutter_length",
+    "D12": "youngs_modulus",
+    "D9": "overall_stickout",
+    "D13": "maximum_acceptable_deflection"
+}
+parsed = parse_me.replace("$", "")
+for key, value in mapping.items():
+    parsed = parsed.replace(key, value)
+print(parsed)
+
+
+def get_youngs_modulus(cutter_material: CutterMaterial) -> float:
+    if cutter_material == CutterMaterial.carbide:
+        return 87000000.
+    elif cutter_material == CutterMaterial.hss:
+        return 30000000.
+    else:
+        return 30000000.
+
+
+youngs_modulus = get_youngs_modulus(cutter_material=cutter.material)
+
+
+def get_max_deflection_percent(cutter: Cutter, machine_force: float, youngs_modulus: float,
+                               max_acceptable_deflection: float):
+    if cutter.diameter < cutter.shank_diameter:
+        maximum_deflection = machine_force * (
+                pow(cutter.length, 3) / (3 * youngs_modulus * (pi * pow(cutter.diameter / 2, 4) / 4)) + pow(
+            cutter.overall_stickout - cutter.length, 3) / (
+                        3 * youngs_modulus * (pi * pow(cutter.shank_diameter / 2, 4) / 4)))
+    elif cutter.diameter == cutter.shank_diameter:
+        max_deflection = machine_force * pow(cutter.overall_stickout, 3) / (
+                3 * youngs_modulus * (pi * pow(cutter.diameter / 2, 4) / 4))
+    else:
+        max_deflection = machine_force * pow(cutter.overall_stickout, 3) / (
+                3 * youngs_modulus * pi * pow(cutter.shank_diameter / 2, 4) / 4)
+
+    return max_deflection / max_acceptable_deflection
+
+
+max_acceptable_deflection = 0.0010
+max_deflection_percent = get_max_deflection_percent(cutter=cutter, machine_force=machine_force,
+                                                    youngs_modulus=youngs_modulus,
+                                                    max_acceptable_deflection=max_acceptable_deflection)
+# =IF(E30=,,IF(cutter_diameter<shank_diameter,machine_force*(cutter_length^3/(3*youngs_modulus*(PI()*(cutter_diameter/2)^4/4))+(overall_stickout-cutter_length)^3/(3*youngs_modulus*(PI()*(shank_diameter/2)^4/4)))
+# ,IF(cutter_diameter=shank_diameter,machine_force*overall_stickout^3/(3*youngs_modulus*(PI()*(cutter_diameter/2)^4/4)),
+# machine_force*overall_stickout^3/(3*youngs_modulus*PI()*(shank_diameter/2)^4/4)))/maximum_acceptable_deflection)
+
+
+print("{0:0.2f}%".format(max_deflection_percent * 100))

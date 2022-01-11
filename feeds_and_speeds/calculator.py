@@ -79,19 +79,6 @@ class Machine:
         {self.router}"""
 
 
-router = Router(input_voltage=120., input_current=6.5, efficiency=0.6, rated_speed=30000.)
-machine = Machine(maximum_machine_force=18., router=router)
-
-cutter = Cutter(
-    material=CutterMaterial.carbide,
-    diameter=0.25,
-    length=0.75,
-    flutes=3,
-    shank_diameter=0.5,
-    overall_stickout=1,
-    maximum_deflection=0.0010)
-
-
 @dataclass
 class FeedsAndSpeedsCalculator:
     machine: Machine
@@ -185,34 +172,47 @@ class FeedsAndSpeedsCalculator:
     def max_deflection_percent(self):
         return self.max_deflection / self.max_acceptable_deflection
 
+
 if __name__ == "__main__":
-    calculation = FeedsAndSpeedsCalculator(machine=machine,
-                                           cutter=cutter,
-                                           chipload=0.002,
-                                           woc=0.1875,
-                                           doc=0.0750,
-                                           rpm=18000.,
-                                           k_factor=10.,
-                                           max_acceptable_deflection=0.0010)
+    router = Router(input_voltage=120., input_current=6.5, efficiency=0.6, rated_speed=30000.)
+    machine = Machine(maximum_machine_force=18., router=router)
 
-    calculation.print_inputs()
+    cutter = Cutter(
+        material=CutterMaterial.carbide,
+        diameter=0.25,
+        length=0.75,
+        flutes=3,
+        shank_diameter=0.5,
+        overall_stickout=1,
+        maximum_deflection=0.0010)
+
+calculation = FeedsAndSpeedsCalculator(machine=machine,
+                                       cutter=cutter,
+                                       chipload=0.002,
+                                       woc=0.1875,
+                                       doc=0.0750,
+                                       rpm=18000.,
+                                       k_factor=10.,
+                                       max_acceptable_deflection=0.0010)
+
+calculation.print_inputs()
 
 
-    def doc_dependent_calculation(doc: float) -> FeedsAndSpeedsCalculator:
-        return FeedsAndSpeedsCalculator(machine=machine,
-                                        cutter=cutter,
-                                        chipload=0.002,
-                                        woc=0.1875,
-                                        doc=doc,
-                                        rpm=18000.,
-                                        k_factor=10.,
-                                        max_acceptable_deflection=0.0010)
+def doc_dependent_calculation(doc: float) -> FeedsAndSpeedsCalculator:
+    return FeedsAndSpeedsCalculator(machine=machine,
+                                    cutter=cutter,
+                                    chipload=0.002,
+                                    woc=0.1875,
+                                    doc=doc,
+                                    rpm=18000.,
+                                    k_factor=10.,
+                                    max_acceptable_deflection=0.0010)
 
 
-    docs = np.linspace(0.001,3., 100)
-    percent_of_max_machine_forces = [doc_dependent_calculation(doc).machine_force_percent for doc in docs]
+docs = np.linspace(0.001, 3., 100)
+percent_of_max_machine_forces = [doc_dependent_calculation(doc).machine_force_percent for doc in docs]
 
-    print(docs)
-    print(percent_of_max_machine_forces)
+print(docs)
+print(percent_of_max_machine_forces)
 
-    plt.plot(docs, percent_of_max_machine_forces, 'o', color='black');
+plt.plot(docs, percent_of_max_machine_forces, 'o', color='black');

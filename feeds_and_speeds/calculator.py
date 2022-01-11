@@ -218,9 +218,17 @@ if __name__ == "__main__":
 
 
     calculators = [calculator_with_doc_woc(calculator, doc, woc) for doc, woc in combinations]
-    acceptable_machine_force_calculators = [c for c in calculators if .18 < c.machine_force_percent < .20]
-    print(acceptable_machine_force_calculators)
-    print([(c.woc, c.doc) for c in acceptable_machine_force_calculators])
+    acceptable_machine_force_calculators = [c for c in calculators if
+                                            .24 < c.machine_force_percent < .25 and .24 < c.available_power_percent < 0.25 and c.max_deflection_percent < 0.1 and c.feedrate < 180]
+    # print(acceptable_machine_force_calculators)
+    print([(c.woc, c.doc, c.material_removal_rate) for c in acceptable_machine_force_calculators])
+    print(len(acceptable_machine_force_calculators))
+    calculator_with_max_mrr: FeedsAndSpeedsCalculator = acceptable_machine_force_calculators[0]
+    for c in acceptable_machine_force_calculators:
+        if c.material_removal_rate > calculator_with_max_mrr.material_removal_rate:
+            calculator_with_max_mrr = c
+
+    print((c.doc, c.woc, c.feedrate,  c.material_removal_rate))
     # percent_of_max_machine_forces = [doc_dependent_calculation(doc).machine_force_percent for doc in docs]
     #
     # print(docs)

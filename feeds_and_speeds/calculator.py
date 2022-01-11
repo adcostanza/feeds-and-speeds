@@ -57,7 +57,7 @@ cutter = Cutter(
     diameter=0.25,
     length=0.75,
     flutes=3,
-    shank_diameter=0.25,
+    shank_diameter=0.5,
     overall_stickout=1,
     maximum_deflection=0.0010)
 
@@ -151,7 +151,7 @@ youngs_modulus = get_youngs_modulus(cutter_material=cutter.material)
 def get_max_deflection_percent(cutter: Cutter, machine_force: float, youngs_modulus: float,
                                max_acceptable_deflection: float):
     if cutter.diameter < cutter.shank_diameter:
-        maximum_deflection = machine_force * (
+        max_deflection = machine_force * (
                 pow(cutter.length, 3) / (3 * youngs_modulus * (pi * pow(cutter.diameter / 2, 4) / 4)) + pow(
             cutter.overall_stickout - cutter.length, 3) / (
                         3 * youngs_modulus * (pi * pow(cutter.shank_diameter / 2, 4) / 4)))
@@ -169,9 +169,5 @@ max_acceptable_deflection = 0.0010
 max_deflection_percent = get_max_deflection_percent(cutter=cutter, machine_force=machine_force,
                                                     youngs_modulus=youngs_modulus,
                                                     max_acceptable_deflection=max_acceptable_deflection)
-# =IF(E30=,,IF(cutter_diameter<shank_diameter,machine_force*(cutter_length^3/(3*youngs_modulus*(PI()*(cutter_diameter/2)^4/4))+(overall_stickout-cutter_length)^3/(3*youngs_modulus*(PI()*(shank_diameter/2)^4/4)))
-# ,IF(cutter_diameter=shank_diameter,machine_force*overall_stickout^3/(3*youngs_modulus*(PI()*(cutter_diameter/2)^4/4)),
-# machine_force*overall_stickout^3/(3*youngs_modulus*PI()*(shank_diameter/2)^4/4)))/maximum_acceptable_deflection)
-
 
 print("{0:0.2f}%".format(max_deflection_percent * 100))

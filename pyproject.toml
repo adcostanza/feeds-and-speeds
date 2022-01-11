@@ -6,6 +6,10 @@ authors = ["Adam Costanza <adcostanza@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+matplotlib = "^3.5.1"
+numpy = "^1.22.0"
+jupyterlab = "^3.2.6"
+notebook = "^6.4.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

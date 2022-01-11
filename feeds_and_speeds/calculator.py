@@ -3,6 +3,9 @@ from dataclasses import dataclass
 from enum import Enum
 from math import sqrt, pi
 
+import numpy as np
+from matplotlib import pyplot as plt
+
 
 class CutterMaterial(str, Enum):
     carbide = 'carbide'
@@ -182,15 +185,34 @@ class FeedsAndSpeedsCalculator:
     def max_deflection_percent(self):
         return self.max_deflection / self.max_acceptable_deflection
 
+if __name__ == "__main__":
+    calculation = FeedsAndSpeedsCalculator(machine=machine,
+                                           cutter=cutter,
+                                           chipload=0.002,
+                                           woc=0.1875,
+                                           doc=0.0750,
+                                           rpm=18000.,
+                                           k_factor=10.,
+                                           max_acceptable_deflection=0.0010)
 
-calculation = FeedsAndSpeedsCalculator(machine=machine,
-                                       cutter=cutter,
-                                       chipload=0.002,
-                                       woc=0.1875,
-                                       doc=0.0750,
-                                       rpm=18000.,
-                                       k_factor=10.,
-                                       max_acceptable_deflection=0.0010)
+    calculation.print_inputs()
 
-calculation.print_inputs()
 
+    def doc_dependent_calculation(doc: float) -> FeedsAndSpeedsCalculator:
+        return FeedsAndSpeedsCalculator(machine=machine,
+                                        cutter=cutter,
+                                        chipload=0.002,
+                                        woc=0.1875,
+                                        doc=doc,
+                                        rpm=18000.,
+                                        k_factor=10.,
+                                        max_acceptable_deflection=0.0010)
+
+
+    docs = np.linspace(0.001,3., 100)
+    percent_of_max_machine_forces = [doc_dependent_calculation(doc).machine_force_percent for doc in docs]
+
+    print(docs)
+    print(percent_of_max_machine_forces)
+
+    plt.plot(docs, percent_of_max_machine_forces, 'o', color='black');

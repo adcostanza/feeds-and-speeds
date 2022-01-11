@@ -1,7 +1,10 @@
+import copy
+import itertools
 import pprint
 from dataclasses import dataclass
 from enum import Enum
 from math import sqrt, pi
+from typing import Tuple, List
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -186,33 +189,41 @@ if __name__ == "__main__":
         overall_stickout=1,
         maximum_deflection=0.0010)
 
-    calculation = FeedsAndSpeedsCalculator(machine=machine,
-                                           cutter=cutter,
-                                           chipload=0.002,
-                                           woc=0.1875,
-                                           doc=0.0750,
-                                           rpm=18000.,
-                                           k_factor=10.,
-                                           max_acceptable_deflection=0.0010)
+    calculator = FeedsAndSpeedsCalculator(machine=machine,
+                                          cutter=cutter,
+                                          chipload=0.002,
+                                          woc=0.1875,
+                                          doc=0.0750,
+                                          rpm=18000.,
+                                          k_factor=10.,
+                                          max_acceptable_deflection=0.0010)
 
-    calculation.print_inputs()
+    docs = np.linspace(0.001, 3. * .25, 100)
+    wocs = np.linspace(0.05 * 0.25, .25, 100)
 
+    combinations: List[Tuple[float, float]] = []
+    for doc in docs:
+        for woc in wocs:
+            combinations.append((doc, woc))
 
-    def doc_dependent_calculation(doc: float) -> FeedsAndSpeedsCalculator:
-        return FeedsAndSpeedsCalculator(machine=machine,
-                                        cutter=cutter,
-                                        chipload=0.002,
-                                        woc=0.1875,
-                                        doc=doc,
-                                        rpm=18000.,
-                                        k_factor=10.,
-                                        max_acceptable_deflection=0.0010)
+    print(combinations)
 
 
-    docs = np.linspace(0.001, 3., 100)
-    percent_of_max_machine_forces = [doc_dependent_calculation(doc).machine_force_percent for doc in docs]
+    def calculator_with_doc_woc(calculator: FeedsAndSpeedsCalculator, doc: float,
+                                woc: float) -> FeedsAndSpeedsCalculator:
+        calculator_copy = copy.deepcopy(calculator)
+        calculator_copy.doc = doc
+        calculator_copy.woc = woc
+        return calculator_copy
 
-    print(docs)
-    print(percent_of_max_machine_forces)
 
-    plt.plot(docs, percent_of_max_machine_forces, 'o', color='black');
+    calculators = [calculator_with_doc_woc(calculator, doc, woc) for doc, woc in combinations]
+    acceptable_machine_force_calculators = [c for c in calculators if .18 < c.machine_force_percent < .20]
+    print(acceptable_machine_force_calculators)
+    print([(c.woc, c.doc) for c in acceptable_machine_force_calculators])
+    # percent_of_max_machine_forces = [doc_dependent_calculation(doc).machine_force_percent for doc in docs]
+    #
+    # print(docs)
+    # print(percent_of_max_machine_forces)
+    #
+    # plt.plot(docs, percent_of_max_machine_forces, 'o', color='black');

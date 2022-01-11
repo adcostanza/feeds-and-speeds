@@ -100,6 +100,21 @@ class FeedsAndSpeedsCalculator:
         print(self.machine)
         print(self.cutter)
 
+    def print_feeds_and_speeds(self):
+        print(f"""
+        (Imperial)
+        doc = {self.doc} in
+        woc = {self.woc} in
+        feedrate = {self.feedrate} in/min
+        mrr = {self.material_removal_rate} in^3/min
+        
+        (Metric)
+        doc = {self.doc * 25.4} mm
+        woc = {self.woc * 25.4} mm
+        feedrate = {self.feedrate * 25.4} mm/min
+        mrr = {self.material_removal_rate * pow(25.4, 3)} mm^3/min
+        """)
+
     def print_outputs(self):
         print("hi")
 
@@ -160,7 +175,7 @@ class FeedsAndSpeedsCalculator:
     def max_deflection(self) -> float:
         if self.cutter.diameter < self.cutter.shank_diameter:
             return self.machine_force * (
-                    pow(cutter.length, 3) / (
+                    pow(self.cutter.length, 3) / (
                     3 * self.cutter.youngs_modulus * (pi * pow(self.cutter.diameter / 2, 4) / 4)) + pow(
                 self.cutter.overall_stickout - self.cutter.length, 3) / (
                             3 * self.cutter.youngs_modulus * (pi * pow(self.cutter.shank_diameter / 2, 4) / 4)))
@@ -174,64 +189,3 @@ class FeedsAndSpeedsCalculator:
     @property
     def max_deflection_percent(self):
         return self.max_deflection / self.max_acceptable_deflection
-
-
-if __name__ == "__main__":
-    router = Router(input_voltage=120., input_current=6.5, efficiency=0.6, rated_speed=30000.)
-    machine = Machine(maximum_machine_force=18., router=router)
-
-    cutter = Cutter(
-        material=CutterMaterial.carbide,
-        diameter=0.25,
-        length=0.75,
-        flutes=3,
-        shank_diameter=0.5,
-        overall_stickout=1,
-        maximum_deflection=0.0010)
-
-    calculator = FeedsAndSpeedsCalculator(machine=machine,
-                                          cutter=cutter,
-                                          chipload=0.002,
-                                          woc=0.1875,
-                                          doc=0.0750,
-                                          rpm=18000.,
-                                          k_factor=10.,
-                                          max_acceptable_deflection=0.0010)
-
-    docs = np.linspace(0.001, 3. * .25, 100)
-    wocs = np.linspace(0.05 * 0.25, .25, 100)
-
-    combinations: List[Tuple[float, float]] = []
-    for doc in docs:
-        for woc in wocs:
-            combinations.append((doc, woc))
-
-    print(combinations)
-
-
-    def calculator_with_doc_woc(calculator: FeedsAndSpeedsCalculator, doc: float,
-                                woc: float) -> FeedsAndSpeedsCalculator:
-        calculator_copy = copy.deepcopy(calculator)
-        calculator_copy.doc = doc
-        calculator_copy.woc = woc
-        return calculator_copy
-
-
-    calculators = [calculator_with_doc_woc(calculator, doc, woc) for doc, woc in combinations]
-    acceptable_machine_force_calculators = [c for c in calculators if
-                                            .24 < c.machine_force_percent < .25 and .24 < c.available_power_percent < 0.25 and c.max_deflection_percent < 0.1 and c.feedrate < 180]
-    # print(acceptable_machine_force_calculators)
-    print([(c.woc, c.doc, c.material_removal_rate) for c in acceptable_machine_force_calculators])
-    print(len(acceptable_machine_force_calculators))
-    calculator_with_max_mrr: FeedsAndSpeedsCalculator = acceptable_machine_force_calculators[0]
-    for c in acceptable_machine_force_calculators:
-        if c.material_removal_rate > calculator_with_max_mrr.material_removal_rate:
-            calculator_with_max_mrr = c
-
-    print((c.doc, c.woc, c.feedrate,  c.material_removal_rate))
-    # percent_of_max_machine_forces = [doc_dependent_calculation(doc).machine_force_percent for doc in docs]
-    #
-    # print(docs)
-    # print(percent_of_max_machine_forces)
-    #
-    # plt.plot(docs, percent_of_max_machine_forces, 'o', color='black');

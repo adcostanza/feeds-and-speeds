@@ -186,33 +186,33 @@ if __name__ == "__main__":
         overall_stickout=1,
         maximum_deflection=0.0010)
 
-calculation = FeedsAndSpeedsCalculator(machine=machine,
-                                       cutter=cutter,
-                                       chipload=0.002,
-                                       woc=0.1875,
-                                       doc=0.0750,
-                                       rpm=18000.,
-                                       k_factor=10.,
-                                       max_acceptable_deflection=0.0010)
+    calculation = FeedsAndSpeedsCalculator(machine=machine,
+                                           cutter=cutter,
+                                           chipload=0.002,
+                                           woc=0.1875,
+                                           doc=0.0750,
+                                           rpm=18000.,
+                                           k_factor=10.,
+                                           max_acceptable_deflection=0.0010)
 
-calculation.print_inputs()
-
-
-def doc_dependent_calculation(doc: float) -> FeedsAndSpeedsCalculator:
-    return FeedsAndSpeedsCalculator(machine=machine,
-                                    cutter=cutter,
-                                    chipload=0.002,
-                                    woc=0.1875,
-                                    doc=doc,
-                                    rpm=18000.,
-                                    k_factor=10.,
-                                    max_acceptable_deflection=0.0010)
+    calculation.print_inputs()
 
 
-docs = np.linspace(0.001, 3., 100)
-percent_of_max_machine_forces = [doc_dependent_calculation(doc).machine_force_percent for doc in docs]
+    def doc_dependent_calculation(doc: float) -> FeedsAndSpeedsCalculator:
+        return FeedsAndSpeedsCalculator(machine=machine,
+                                        cutter=cutter,
+                                        chipload=0.002,
+                                        woc=0.1875,
+                                        doc=doc,
+                                        rpm=18000.,
+                                        k_factor=10.,
+                                        max_acceptable_deflection=0.0010)
 
-print(docs)
-print(percent_of_max_machine_forces)
 
-plt.plot(docs, percent_of_max_machine_forces, 'o', color='black');
+    docs = np.linspace(0.001, 3., 100)
+    percent_of_max_machine_forces = [doc_dependent_calculation(doc).machine_force_percent for doc in docs]
+
+    print(docs)
+    print(percent_of_max_machine_forces)
+
+    plt.plot(docs, percent_of_max_machine_forces, 'o', color='black');

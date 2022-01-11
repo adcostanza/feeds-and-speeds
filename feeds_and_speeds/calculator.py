@@ -11,9 +11,9 @@ from matplotlib import pyplot as plt
 
 
 class CutterMaterial(str, Enum):
-    carbide = 'carbide'
-    hss = 'hss'
-    cobalt = 'cobalt'
+    carbide = "carbide"
+    hss = "hss"
+    cobalt = "cobalt"
 
 
 @dataclass
@@ -29,11 +29,11 @@ class Cutter:
     @property
     def youngs_modulus(self) -> float:
         if self.material == CutterMaterial.carbide:
-            return 87000000.
+            return 87000000.0
         elif self.material == CutterMaterial.hss:
-            return 30000000.
+            return 30000000.0
         else:
-            return 30000000.
+            return 30000000.0
 
     def __str__(self):
         return f"""
@@ -101,7 +101,8 @@ class FeedsAndSpeedsCalculator:
         print(self.cutter)
 
     def print_feeds_and_speeds(self):
-        print(f"""
+        print(
+            f"""
         (Imperial)
         doc = {self.doc} in
         woc = {self.woc} in
@@ -113,7 +114,8 @@ class FeedsAndSpeedsCalculator:
         woc = {self.woc * 25.4} mm
         feedrate = {self.feedrate * 25.4} mm/min
         mrr = {self.material_removal_rate * pow(25.4, 3)} mm^3/min
-        """)
+        """
+        )
 
     def print_outputs(self):
         print("hi")
@@ -137,7 +139,8 @@ class FeedsAndSpeedsCalculator:
             return self.chipload
         else:
             return (self.cutter.diameter * self.chipload) / (
-                    2.0 * sqrt((self.cutter.diameter * self.woc) - pow(self.woc, 2)))
+                2.0 * sqrt((self.cutter.diameter * self.woc) - pow(self.woc, 2))
+            )
 
     @property
     def feedrate(self) -> float:
@@ -153,7 +156,7 @@ class FeedsAndSpeedsCalculator:
 
     @property
     def torque(self) -> float:
-        return self.power_usage * 63024. / self.rpm
+        return self.power_usage * 63024.0 / self.rpm
 
     @property
     def machine_force(self) -> float:
@@ -175,16 +178,41 @@ class FeedsAndSpeedsCalculator:
     def max_deflection(self) -> float:
         if self.cutter.diameter < self.cutter.shank_diameter:
             return self.machine_force * (
-                    pow(self.cutter.length, 3) / (
-                    3 * self.cutter.youngs_modulus * (pi * pow(self.cutter.diameter / 2, 4) / 4)) + pow(
-                self.cutter.overall_stickout - self.cutter.length, 3) / (
-                            3 * self.cutter.youngs_modulus * (pi * pow(self.cutter.shank_diameter / 2, 4) / 4)))
+                pow(self.cutter.length, 3)
+                / (
+                    3
+                    * self.cutter.youngs_modulus
+                    * (pi * pow(self.cutter.diameter / 2, 4) / 4)
+                )
+                + pow(self.cutter.overall_stickout - self.cutter.length, 3)
+                / (
+                    3
+                    * self.cutter.youngs_modulus
+                    * (pi * pow(self.cutter.shank_diameter / 2, 4) / 4)
+                )
+            )
         elif self.cutter.diameter == self.cutter.shank_diameter:
-            return self.machine_force * pow(self.cutter.overall_stickout, 3) / (
-                    3 * self.cutter.youngs_modulus * (pi * pow(self.cutter.diameter / 2, 4) / 4))
+            return (
+                self.machine_force
+                * pow(self.cutter.overall_stickout, 3)
+                / (
+                    3
+                    * self.cutter.youngs_modulus
+                    * (pi * pow(self.cutter.diameter / 2, 4) / 4)
+                )
+            )
         else:
-            return self.machine_force * pow(self.cutter.overall_stickout, 3) / (
-                    3 * self.cutter.youngs_modulus * pi * pow(cutter.shank_diameter / 2, 4) / 4)
+            return (
+                self.machine_force
+                * pow(self.cutter.overall_stickout, 3)
+                / (
+                    3
+                    * self.cutter.youngs_modulus
+                    * pi
+                    * pow(cutter.shank_diameter / 2, 4)
+                    / 4
+                )
+            )
 
     @property
     def max_deflection_percent(self):

@@ -10,12 +10,12 @@ from feeds_and_speeds.calculator import (
     Router,
     Cutter,
 )
-from feeds_and_speeds.defaults import cutter_201, shapeoko
+from feeds_and_speeds.defaults import cutter_201, shapeoko, cutter_205e
 
 if __name__ == "__main__":
     calculator = FeedsAndSpeedsCalculator(
         machine=shapeoko,
-        cutter=cutter_201,
+        cutter=cutter_205e,
         chipload=0.001,
         woc=0.1875,
         doc=0.0750,
@@ -23,12 +23,8 @@ if __name__ == "__main__":
         k_factor=10.0,
         max_acceptable_deflection=0.0010,
     )
-    min_doc = 0.001
-    max_doc = 0.04  # 1mm
-    min_woc = 0.05 * 0.25
-    max_woc = 0.25
-    docs = np.linspace(min_doc, max_doc, 100)
-    wocs = np.linspace(min_woc, max_woc, 100)
+    docs = [1.]
+    wocs = [0.1/25.4]
 
     combinations: List[Tuple[float, float]] = []
     for doc in docs:

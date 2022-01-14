@@ -12,7 +12,17 @@ cutter_201 = Cutter(
     diameter=0.25,
     length=0.75,
     flutes=3,
-    shank_diameter=0.5,
+    shank_diameter=0.25,
     overall_stickout=1,
+    maximum_deflection=0.0010,
+)
+
+cutter_205e = Cutter(
+    material=CutterMaterial.carbide,
+    diameter=0.25,
+    length=1,
+    flutes=2,
+    shank_diameter=0.25,
+    overall_stickout=1.25,
     maximum_deflection=0.0010,
 )

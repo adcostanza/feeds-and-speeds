@@ -16,7 +16,7 @@ if __name__ == "__main__":
     calculator = FeedsAndSpeedsCalculator(
         machine=shapeoko,
         cutter=cutter_205e,
-        chipload=0.002,
+        chipload=0.003,
         woc=0.1875,
         doc=0.0750,
         rpm=18000.0,
